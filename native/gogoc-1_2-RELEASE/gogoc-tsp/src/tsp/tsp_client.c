@@ -750,9 +750,9 @@ error_t RetrieveBrokerList( gogocBrokerList** ppBrokerList )
 //   GOGOCM_UIS__NOERROR: Successfully retrieved the HACCESS status info.
 //
 // --------------------------------------------------------------------------
+#ifdef HACCESS
 error_t RetrieveHACCESSStatusInfo( HACCESSStatusInfo** ppHACCESSStatusInfo )
 {
-#ifdef HACCESS
 
   HACCESSStatusInfo *haccess_status_info_copy = NULL;
   haccess_status status = HACCESS_STATUS_OK;
@@ -777,11 +777,14 @@ error_t RetrieveHACCESSStatusInfo( HACCESSStatusInfo** ppHACCESSStatusInfo )
   *ppHACCESSStatusInfo = haccess_status_info_copy;
 
   return GOGOCM_UIS__NOERROR;
+}
 #else
+error_t RetrieveHACCESSStatusInfo( __unused HACCESSStatusInfo** ppHACCESSStatusInfo )
+{
   // Not supposed to happen if HACCESS is not enabled
   return GOGOCM_UIS_ERRUNKNOWN;
-#endif
 }
+#endif
 
 // --------------------------------------------------------------------------
 void FreeStatusInfo( gogocStatusInfo** ppStatusInfo )
@@ -849,7 +852,7 @@ void FreeHACCESSStatusInfo( HACCESSStatusInfo** ppHACCESSStatusInfo )
 //   GOGOCM_UIS__NOERROR: Successfully processed the HACCESS Config info.
 //
 // --------------------------------------------------------------------------
-error_t NotifyhaccessConfigInfo( const HACCESSConfigInfo* aHACCESSConfigInfo )
+error_t NotifyhaccessConfigInfo( const __unused HACCESSConfigInfo* aHACCESSConfigInfo)
 {
   return GOGOCM_UIS__NOERROR;
 }
@@ -1026,7 +1029,7 @@ sint32_t tspMain(sint32_t argc, char *argv[])
   tBrokerList *current_broker_in_list = NULL;
   sint32_t trying_broker_list = 0;
   tRedirectStatus broker_list_status = TSP_REDIRECT_OK;
-  uint16_t effective_retry_delay;
+  uint16_t effective_retry_delay = 0;
   uint8_t  consec_retry = 0;
 
   // Initialize the net tools array.

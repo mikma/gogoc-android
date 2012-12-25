@@ -524,6 +524,7 @@ void set_tsp_env_variables( const tConf* pConfig, const tTunnel* pTunnelInfo )
 // NOTE: This function is NOT thread safe. Callee should not retain
 //       pointer returned from this function.
 //
+#ifndef ANDROID
 static char* get_template_script( const tConf* pConfig )
 {
   static char buffer[1024] = { 0x00 };
@@ -564,6 +565,7 @@ static char* get_template_script( const tConf* pConfig )
 
   return buffer;
 }
+#endif
 
 
 // --------------------------------------------------------------------------
@@ -573,7 +575,9 @@ static char* get_template_script( const tConf* pConfig )
 gogoc_status tspSetupInterface(tConf *c, tTunnel *t)
 {
   gogoc_status status = STATUS_SUCCESS_INIT;
+#ifndef ANDROID
   char* template_script;
+#endif
 
 
   // Perform validation on tunnel information provided by server.
@@ -690,7 +694,9 @@ gogoc_status tspSetupInterface(tConf *c, tTunnel *t)
 //
 gogoc_status tspTearDownTunnel( tConf* pConf, tTunnel* pTunInfo )
 {
+#ifndef ANDROID 
   char* scriptName;
+#endif
 
 
   // Specify TSP Operation: Tunnel Teardown.

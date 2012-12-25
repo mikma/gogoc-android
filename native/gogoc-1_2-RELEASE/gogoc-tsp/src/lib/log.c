@@ -271,7 +271,7 @@ static int RotateLogFile( char *filename, int max_size, char *log_line )
 
 // --------------------------------------------------------------------------
 /* Send a message to syslog. */
-static int LogToSyslog(int VerboseLevel, enum tSeverityLevel SeverityLvl, const char *FunctionName, char *Format, ...)
+static int LogToSyslog(__unused int VerboseLevel, enum tSeverityLevel SeverityLvl, __unused const char *FunctionName, char *Format, ...)
 {
   va_list argp;
   char buffer[MAX_LOG_LINE_LENGTH];
@@ -373,7 +373,7 @@ static int LogBufferLineToFile(char *LogLine, tLogConfiguration *configuration, 
 
 // --------------------------------------------------------------------------
 /* Write a log message to the log file. */
-static int LogToFile(int buffer, enum tSeverityLevel SeverityLvl, const char *FunctionName, char *Format, ...)
+static int LogToFile(int buffer, enum tSeverityLevel SeverityLvl, __unused const char *FunctionName, char *Format, ...)
 {
   va_list argp;
   time_t t;
@@ -533,7 +533,7 @@ void Display(int VerboseLevel, enum tSeverityLevel SeverityLvl, const char *func
   va_end(argp);
 
   /* Change CRLF to LF for log output */
-  for( i = 0, j = 0; i < sizeof(fmt); i++ )
+  for( i = 0, j = 0; i < (int)sizeof(fmt); i++ )
   {
     if( fmt[i] == '\r' && fmt[i + 1] == '\n' )
     {

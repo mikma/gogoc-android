@@ -81,6 +81,8 @@ ACCESS sint32_t XMLParse(char *str, tNode nodes[]);
 #define STARTLIST {
 
 #define PROC(pr) sint32_t p_##pr (tNode *n, char *content)
+#define PROCn(pr) sint32_t p_##pr (__unused tNode *n, char *content)
+#define PROCc(pr) sint32_t p_##pr (tNode *n, __unused char *content)
 
 #undef ACCESS
 

@@ -196,7 +196,7 @@ PROC(tunnel)
   return XMLParse(content, Tunnel);
 }
 
-PROC(server)
+PROCn(server)
 {
   int res;
 
@@ -206,7 +206,7 @@ PROC(server)
   return res;
 }
 
-PROC(broker)
+PROCn(broker)
 {
   int res;
 
@@ -216,7 +216,7 @@ PROC(broker)
   return res;
 }
 
-PROC(client)
+PROCn(client)
 {
   int res;
 
@@ -227,7 +227,7 @@ PROC(client)
   return res;
 }
 
-PROC(dns_server)
+PROCn(dns_server)
 {
   int res;
 
@@ -250,7 +250,7 @@ PROC(router)
   return res;
 }
 
-PROC(as)
+PROCc(as)
 {
   if (client) {
     Assign(n->attributes[0].value, &theTunnelInfo->client_as);
