@@ -35,22 +35,22 @@ LOCAL_SRC_FILES := \
 		gogoc-tsp/src/xml/xml_req.c \
 		gogoc-tsp/src/xml/xml_tun.c \
 		gogoc-tsp/platform/unix-common/unix-main.c \
-		gogoc-tsp/platform/linux/tsp_local.c \
-		gogoc-tsp/platform/linux/tsp_tun.c
+		gogoc-tsp/platform/android/tsp_local.c \
+		gogoc-tsp/platform/android/tsp_tun.c
 
 LOCAL_C_INCLUDES := \
 		$(LOCAL_PATH)/gogoc-pal/defs \
 		$(LOCAL_PATH)/gogoc-pal/out_inc \
 		$(LOCAL_PATH)/gogoc-pal/platform/unix-common/inc \
 		$(LOCAL_PATH)/gogoc-pal/platform/common/inc \
-		$(LOCAL_PATH)/gogoc-tsp/platform/linux \
+		$(LOCAL_PATH)/gogoc-tsp/platform/android \
 		$(LOCAL_PATH)/gogoc-tsp/include \
 		$(LOCAL_PATH)/gogoc-config \
 		$(LOCAL_PATH)/gogoc-messaging
 
 
 LOCAL_CFLAGS = \
-		-DPLATFORM=\"linux\" \
+		-DPLATFORM=\"android\" \
 		-D_REENTRANT \
 		-DNDEBUG \
 		-DINET_ADDRSTRLEN=16
