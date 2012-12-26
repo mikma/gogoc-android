@@ -255,7 +255,7 @@ public class GogocActivity extends Activity
 			if (msg.what == CLEAR) {
 				logtext.setText((String)msg.obj);
 			} else if (msg.what == LOG) {
-				logtext.append((String)msg.obj);
+				logtext.append((String)msg.obj + "\n");
 			}
 		}
 	};
