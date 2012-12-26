@@ -3,12 +3,15 @@
 package org.nklog.gogoc;
 
 import android.os.IBinder;
+import android.app.Activity;
 import android.app.Service;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
+
+import android.net.VpnService;
 
 import java.io.File;
 import java.io.InputStream;
@@ -23,7 +26,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 
-public class GogocService extends Service
+public class GogocService extends VpnService
 {
 	private Receiver receiver = null;
 
@@ -64,10 +67,12 @@ public class GogocService extends Service
 		super.onDestroy();
 	}
 
+        /*
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
 	}
+        */
 
 	private void sendToActivity(String tag, String content) {
 		Log.d(TAG, "send to activity: " + tag + content);

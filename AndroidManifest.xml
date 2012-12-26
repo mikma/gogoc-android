@@ -13,9 +13,11 @@
         </activity>
         <activity android:name=".GogocHelp"
             android:theme="@android:style/Theme.NoTitleBar" />
-        <service android:name=".GogocService">
+        <service android:name=".GogocService"
+                 android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
                 <action android:name="org.nklog.gogoc.GogocService" />
+                <action android:name="android.net.VpnService"/>
             </intent-filter>
         </service>
     </application>

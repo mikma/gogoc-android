@@ -5,6 +5,8 @@ package org.nklog.gogoc;
 import android.app.Activity;
 import android.os.Bundle;
 
+import android.net.VpnService;
+
 import android.widget.Toast;
 import android.widget.CheckBox;
 import android.widget.TextView;
@@ -75,8 +77,13 @@ public class GogocActivity extends Activity
 		checkbox.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if (((CheckBox) v).isChecked()) {
-					startService(new Intent(GogocActivity.this, GogocService.class));
-					prepareLog();
+                                        Intent intent =
+                                                VpnService.prepare(GogocActivity.this);
+                                        if (intent != null) {
+                                                startActivityForResult(intent, 0);
+                                        } else {
+                                                startGogocService();
+                                        }
 				} else {
 					displayLog(false);
 					text.setText(R.string.text);
@@ -87,6 +94,23 @@ public class GogocActivity extends Activity
 			}
 		});
 	}
+
+        @Override
+        protected void onActivityResult (int requestCode, int resultCode,
+                                         Intent data) {
+		Log.d(TAG, "onActivityResult resultCode: " + resultCode);
+                if (resultCode == Activity.RESULT_OK) {
+                        Log.d(TAG, "VPN prepared!");
+                        startGogocService();
+                } else {
+                        // TODO display error/offline
+                }
+        }
+
+        private void startGogocService() {
+                startService(new Intent(GogocActivity.this, GogocService.class));
+                prepareLog();
+        }
 
 	private class Receiver extends BroadcastReceiver {
 		@Override
