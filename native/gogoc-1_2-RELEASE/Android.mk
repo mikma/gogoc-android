@@ -34,7 +34,6 @@ LOCAL_SRC_FILES := \
 		gogoc-tsp/src/xml/xmlparse.c \
 		gogoc-tsp/src/xml/xml_req.c \
 		gogoc-tsp/src/xml/xml_tun.c \
-		gogoc-tsp/platform/unix-common/unix-main.c \
 		gogoc-tsp/platform/android/tsp_local.c \
 		gogoc-tsp/platform/android/tsp_tun.c
 
@@ -72,4 +71,4 @@ LOCAL_SYSTEM_SHARED_LIBRARIES := libc
 # LOCAL_STATIC_LIBRARIES := libc
 # LOCAL_FORCE_STATIC_EXECUTABLE := true
 LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT_BIN)
-include $(BUILD_EXECUTABLE)
+include $(BUILD_STATIC_LIBRARY)

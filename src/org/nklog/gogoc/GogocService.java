@@ -25,14 +25,11 @@ import android.content.pm.PackageManager.NameNotFoundException;
 
 public class GogocService extends Service
 {
-	private int unpack = 0;
-	private Process process = null;
 	private Receiver receiver = null;
 
 	private final String TAG = "GogocService";
 	private Thread thread = null;
 
-	private final String TUNPATH = "/sdcard/.gogoc/tun.ko";
 	private SharedPreferences preference;
 
 	@Override
@@ -41,7 +38,6 @@ public class GogocService extends Service
 		receiver = new Receiver();
 
 		preference= PreferenceManager.getDefaultSharedPreferences(this);
-		prepareRaw();
 
 		super.onCreate();
 	}
@@ -52,14 +48,11 @@ public class GogocService extends Service
 		IntentFilter filter = new IntentFilter();
 		filter.addAction("org.nklog.gogoc.GogocService");
 		registerReceiver(receiver, filter);
-		if (unpack != 0) {
-			sendToActivity("E", "unpack");
-		} else {
-			Log.d(TAG, "try to startProcess");
-			if (thread == null) {
-				thread = new Thread(new GogocProcess());
-				thread.start();
-			}
+
+                Log.d(TAG, "try to startProcess");
+                if (thread == null) {
+                        thread = new Thread(new GogocProcess());
+                        thread.start();
 		}
 		return super.onStartCommand(intent, flags, startId);
 	}
@@ -93,11 +86,9 @@ public class GogocService extends Service
 				stopProcess();
 			} else if (command.compareTo("status") == 0) {
 				try {
-					if (process != null && process.exitValue() == 0) {
-						sendToActivity("S", "online");
-					} else {
-						sendToActivity("S", "offline");
-					}
+                                        // TODO return status
+                                        // sendToActivity("S", "online");
+                                        // sendToActivity("S", "offline");
 				} catch (IllegalThreadStateException e) {
 					sendToActivity("S", "running");
 				}
@@ -107,73 +98,28 @@ public class GogocService extends Service
 
 	private boolean startProcess() {
 		int retcode = -1;
-		Log.d(TAG, "startProcess, process = " + (process != null));
-		if (process != null) {
-			return true;
-		}
+		Log.d(TAG, "startProcess, process");
 
-		File devtun = new File("/dev/tun");
-		if (!devtun.exists()) {
-			String path = null;
-			Process settun = null;
-			if (hastun()) {
-				path = TUNPATH;
-			} else {
-				path = getFileStreamPath("tun.ko").getAbsolutePath();
-			}
-
-			Log.d(TAG, "tun.ko path is " + path);
-			try {
-				settun = new ProcessBuilder()
-					.command("su", "-c", "insmod " + path)
-					.start();
-				retcode = settun.waitFor();
-			} catch (Exception e) {
-				Log.d(TAG, "insmod tun.ko failed", e);
-				if (settun != null) {
-					settun.destroy();
-				}
-			}
-			if (retcode != 0) {
-				Log.d(TAG, "insmod error, retcode = " + retcode);
-				sendToActivity("E", "module");
-			}
-			Log.d(TAG, "insmod ok, retcode = " + retcode);
-		}
+                // TODO check if running
 
 		retcode = -1;
 		sendToActivity("S", "running");
 		try {
 			Log.d(TAG, "start new process: " + getFileStreamPath("gogoc").getAbsolutePath());
-			process = new ProcessBuilder()
-				.command("su", "-c", getFileStreamPath("gogoc").getAbsolutePath())
-				.redirectErrorStream(true)
-				.start();
-			retcode = process.waitFor();
-		} catch (InterruptedException e) {
-			Log.e(TAG, "user interrupt");
-			return false;
+                        startup();
+                        // TODO
+			// retcode = process.waitFor();
 		} catch (Exception e) {
 			Log.e(TAG, "gogoc failed", e);
-			if (process != null) {
-				process.destroy();
-			}
 		}
 		if (retcode != 0) {
 			sendToActivity("E", "gogoc");
 			return false;
 		} else {
-			Process setprop = null;
 			sendToActivity("S", "online");
 			try {
-				setprop = new ProcessBuilder()
-					.command("su", "-c", "setprop net.dns1 210.51.191.217")
-					.start();
-				setprop.waitFor();
+                                // TODO set DNS
 			} catch (Exception e) {
-				if (setprop != null) {
-					setprop.destroy();
-				}
 			}
 			return true;
 		}
@@ -186,38 +132,8 @@ public class GogocService extends Service
 			thread = null;
 		}
 
-		// kill the daemon
-		String line = null;
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(getFileStreamPath("gogoc.pid")), 1024);
-			line = br.readLine();
-			br.close();
-		} catch (Exception e) {
-			Log.e(TAG, "read gogoc.pid exception", e);
-		}
-		if (line != null) {
-			Log.d(TAG, "try to run kill -9 " + line);
-			Process kill = null;
-			try {
-				kill = new ProcessBuilder()
-					.command("su", "-c", "kill -9 " + line)
-					.start();
-				kill.waitFor();
-			} catch (Exception e) {
-				Log.e(TAG, "kill -9 gogoc", e);
-				if (kill != null) kill.destroy();
-			}
-		}
-
-		Log.d(TAG, "process = " + (process != null));
-		if (process != null) {
-			// actually, we have killed -9 the process
-			process.destroy();
-			Log.d(TAG, "gogoc destroy");
-			retcode = process.exitValue();
-			Log.e(TAG, "gogoc exitValue: " + retcode);
-			process = null;
-		}
+                Log.d(TAG, "gogoc destroy");
+                shutdown();
 
 		// ok, we have killed the process, then remove the pid
 		if (getFileStreamPath("gogoc.pid").exists()) {
@@ -227,59 +143,6 @@ public class GogocService extends Service
 		if (getFileStreamPath("gogoc.log").exists()) {
 			getFileStreamPath("gogoc.log").delete();
 		}
-
-		Log.d(TAG, "try to rmmod tun");
-		Process rmmod = null;
-		try {
-			rmmod = new ProcessBuilder()
-				.command("su", "-c", "rmmod tun")
-				.start();
-			rmmod.waitFor();
-		} catch (Exception e) {
-			Log.e(TAG, "rmmod tun", e);
-			if (rmmod != null) rmmod.destroy();
-		}
-	}
-
-	private int unpackRaw(boolean newversion, int resid, String filename, boolean executable) {
-		int retcode = 0;
-
-		if (getFileStreamPath(filename).exists()) {
-			if (!newversion) {
-				return 0;
-			}
-			getFileStreamPath(filename).delete();
-		}
-
-		Log.d(TAG, String.format("unpack %s", filename));
-
-		try {
-			InputStream is = getResources().openRawResource(resid);
-			OutputStream os = openFileOutput(filename, MODE_WORLD_READABLE);
-			int length;
-			byte [] buffer = new byte[8192];
-			while((length = is.read(buffer)) >= 0) {
-				os.write(buffer, 0, length);
-			}
-			os.close();
-		} catch (Exception e) {
-			retcode = 1;
-			Log.e(TAG, String.format("unpack %s", filename), e);
-		}
-		if (retcode == 0 && executable) {
-			Process chmod = null;
-			String command = String.format("chmod 555 %s", getFileStreamPath(filename).getAbsolutePath());
-			try {
-				chmod = Runtime.getRuntime().exec(command);
-				chmod.waitFor();
-			} catch (Exception e) {
-				if (chmod != null) chmod.destroy();
-				Log.e(TAG, command, e);
-				retcode = 1;
-			}
-		}
-		Log.d(TAG, String.format("unpacked %s: %d", filename, retcode));
-		return retcode;
 	}
 
 	private class GogocProcess implements Runnable {
@@ -294,27 +157,10 @@ public class GogocService extends Service
 		}
 	}
 
-	private boolean hastun() {
-		File tun = new File(TUNPATH);
-		return tun.exists();
-	}
+        static {
+                System.loadLibrary("gogocjni");
+        }
 
-	private void prepareRaw()
-	{
-		int retcode = 0;
-		int versionCode = -1;
-		try {
-			versionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
-		} catch (NameNotFoundException e) {
-		}
-		boolean newversion = (preference.getInt("versionCode", 0) != versionCode);
-
-		unpack |= unpackRaw(newversion, R.raw.gogoc, "gogoc", true);
-		if (!hastun()) {
-			unpack |= unpackRaw(newversion, R.raw.tun, "tun.ko", false);
-		}
-		if (newversion && unpack == 0) {
-			preference.edit().putInt("versionCode", versionCode).commit();
-		}
-	}
+        native private void startup();
+        native private void shutdown();
 }
