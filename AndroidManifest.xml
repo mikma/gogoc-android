@@ -19,5 +19,8 @@
             </intent-filter>
         </service>
     </application>
+
+    <!-- INTERNET is of course needed -->
+    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
 <!-- vim: set sta sw=4 et: -->
