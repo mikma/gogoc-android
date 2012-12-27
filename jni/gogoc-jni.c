@@ -281,7 +281,8 @@ sint32_t TunInit(const char *client_address_ipv6,
   /* TODO check exceptions */
   (*g_env)->CallObjectMethod(g_env, g_builder, add_address, address, PREFIX_LENGTH);
   FOO;
-  (*g_env)->CallObjectMethod(g_env, g_builder, add_dns_server, dns_server);
+  /* Broken access to google DNS on gogo6 */
+  /* (*g_env)->CallObjectMethod(g_env, g_builder, add_dns_server, dns_server); */
   FOO;
   (*g_env)->CallObjectMethod(g_env, g_builder, add_route, route, ROUTE_PREFIX_LEN);
   FOO;
