@@ -42,7 +42,7 @@ gogoc_status TunMainLoop(sint32_t tunfd, pal_socket_t Socket,
 {
   fd_set rfds;
   int count, maxfd, ret;
-  unsigned char bufin[TUN_BUFSIZE] = { 0x00, 0x00, 0x86, 0xDD };
+  unsigned char bufin[TUN_BUFSIZE];
   unsigned char bufout[TUN_BUFSIZE];
   struct timeval timeout;
   void* p_ka_engine = NULL;
@@ -151,7 +151,7 @@ gogoc_status TunMainLoop(sint32_t tunfd, pal_socket_t Socket,
           goto done;
         }
 
-        if (send(Socket,bufout+4,count-4,0) != count-4)
+        if (send(Socket,bufout,count,0) != count)
         {
           Display( LOG_LEVEL_1, ELError, "TunMainLoop",STR_NET_FAIL_W_SOCKET );
           status = make_status(CTX_TUNNELLOOP, ERR_TUNNEL_IO);
@@ -162,8 +162,8 @@ gogoc_status TunMainLoop(sint32_t tunfd, pal_socket_t Socket,
       if( FD_ISSET(Socket,&rfds) )
       {
         // Data received through UDP tunnel.
-        count = recvfrom( Socket, bufin+4, TUN_BUFSIZE-4, 0, NULL, NULL );
-        if( write(tunfd,bufin,count+4) != count+4 )
+        count = recvfrom( Socket, bufin, TUN_BUFSIZE, 0, NULL, NULL );
+        if( write(tunfd,bufin,count) != count )
         {
           Display( LOG_LEVEL_1, ELError, "TunMainLoop", STR_NET_FAIL_W_TUN_DEV );
           status = make_status(CTX_TUNNELLOOP, ERR_TUNNEL_IO);

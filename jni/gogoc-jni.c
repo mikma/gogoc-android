@@ -309,7 +309,7 @@ sint32_t TunInit(const char *client_address_ipv6,
     goto error;
   }
 
-  tunfd = (int)(*g_env)->CallObjectMethod(g_env, parcelfd, detach_fd);
+  tunfd = (*g_env)->CallIntMethod(g_env, parcelfd, detach_fd);
   FOO;
   if (tunfd < 0) {
     __android_log_print(ANDROID_LOG_ERROR, TAG, "failed tunfd");
