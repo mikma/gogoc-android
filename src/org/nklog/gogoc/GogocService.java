@@ -38,9 +38,11 @@ public class GogocService extends VpnService
 
         public class Builder extends VpnService.Builder {
                 public ParcelFileDescriptor establish () {
+                        ParcelFileDescriptor parcel = super.establish();
+
                         Log.d(TAG, "VpnService.Builder.establish");
 
-                        return super.establish();
+                        return parcel;
                 }
         }
 
@@ -82,6 +84,12 @@ public class GogocService extends VpnService
 		return null;
 	}
         */
+
+	@Override
+	public void onRevoke() {
+                stopProcess();
+                super.onRevoke();
+	}
 
 	private void sendToActivity(String tag, String content) {
 		Log.d(TAG, "send to activity: " + tag + content);
