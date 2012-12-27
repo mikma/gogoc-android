@@ -194,10 +194,14 @@ gogoc_status tspStartLocal(int socket, tConf *c, tTunnel *t, net_tools_t *nt)
     //status = tspSetupInterface(c, t);
 
     // Retrieve keepalive inteval, if found in tunnel parameters.
+    /* TODO Implement ICMPv6 with libnet or similar */
+    /* and send UDPv4 directly. */
+#if 0
     if( t->keepalive_interval != NULL )
     {
       ka_interval = atoi(t->keepalive_interval);
     }
+#endif
 
     // Start the tunnel loop, depending on tunnel mode
     //
