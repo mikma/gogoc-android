@@ -14,7 +14,8 @@ This source code copyright (c) gogo6 Inc. 2002-2005.
 
 #include "config.h"
 
-sint32_t            TunInit               (char *TunDevice);
+sint32_t            TunInit               (const char *client_address_ipv6,
+                                           const char *client_dns_server_address_ipv6);
 gogoc_status         TunMainLoop           (sint32_t tunfd, pal_socket_t Socket, 
                                            tBoolean keepalive, sint32_t keepalive_interval,
 		                                       char *local_address_ipv6, char *keepalive_address);

@@ -3,6 +3,7 @@
 package org.nklog.gogoc;
 
 import android.os.IBinder;
+import android.os.ParcelFileDescriptor;
 import android.app.Activity;
 import android.app.Service;
 
@@ -34,6 +35,14 @@ public class GogocService extends VpnService
 	private Thread thread = null;
 
 	private SharedPreferences preference;
+
+        public class Builder extends VpnService.Builder {
+                public ParcelFileDescriptor establish () {
+                        Log.d(TAG, "VpnService.Builder.establish");
+
+                        return super.establish();
+                }
+        }
 
 	@Override
 	public void onCreate()
@@ -111,7 +120,7 @@ public class GogocService extends VpnService
 		sendToActivity("S", "running");
 		try {
 			Log.d(TAG, "start new process: " + getFileStreamPath("gogoc").getAbsolutePath());
-                        startup();
+                        startup(new Builder());
                         // TODO
 			// retcode = process.waitFor();
 		} catch (Exception e) {
@@ -166,6 +175,6 @@ public class GogocService extends VpnService
                 System.loadLibrary("gogocjni");
         }
 
-        native private void startup();
+        native private void startup(VpnService.Builder builder);
         native private void shutdown();
 }

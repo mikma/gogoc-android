@@ -11,7 +11,7 @@ This source code copyright (c) gogo6 Inc. 2002-2007.
 #ifndef _PLATFORM_H_
 #define _PLATFORM_H_
 
-/* Linux */
+/* Android */
 
 #include "pal.h"
 

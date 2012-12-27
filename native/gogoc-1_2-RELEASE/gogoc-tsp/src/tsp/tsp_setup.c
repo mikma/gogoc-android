@@ -66,6 +66,7 @@ struct in6_rtmsg {
   int             rtmsg_ifindex;
 };
 
+#ifndef ANDROID
 static int ifup(const char *name, const char *host, int prefix, int mtu)
 {
   int retcode = -1;
@@ -292,6 +293,8 @@ static int add_tunnel(const char *name, const char *remote, const char *local)
   close(sock);
   return code;
 }
+#endif  /* !ANDROID */
+
 #else
 /* Execute cmd and send output to log subsystem */
 sint32_t execScript( const char *cmd )
@@ -629,6 +632,7 @@ gogoc_status tspSetupInterface(tConf *c, tTunnel *t)
   }
   Display(LOG_LEVEL_2, ELInfo, "tspSetupInterface", STR_GEN_SCRIPT_EXEC_SUCCESS);
 #else
+#if 0
   {
     char *interface = NULL;
     Display(LOG_LEVEL_2, ELInfo, "tspSetupInterface", "...");
@@ -652,6 +656,7 @@ gogoc_status tspSetupInterface(tConf *c, tTunnel *t)
     delroute();
     addroute(interface);
   }
+#endif
 #endif
 
 
@@ -725,6 +730,7 @@ gogoc_status tspTearDownTunnel( tConf* pConf, tTunnel* pTunInfo )
   }
   Display(LOG_LEVEL_2, ELInfo, "tspTearDownTunnel", STR_GEN_SCRIPT_EXEC_SUCCESS );
 #else
+#if 0
   delroute();
   if (pal_strcasecmp(pTunInfo->type, STR_XML_TUNNELMODE_V6V4) == 0)
   {
@@ -732,6 +738,7 @@ gogoc_status tspTearDownTunnel( tConf* pConf, tTunnel* pTunInfo )
   } else if (pal_strcasecmp(pTunInfo->type, STR_XML_TUNNELMODE_V6UDPV4) == 0) {
       del_tunnel(pConf->if_tunnel_v6udpv4);
   }
+#endif
 #endif
 
 

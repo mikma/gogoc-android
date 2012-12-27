@@ -112,7 +112,7 @@ struct in_addr *NetText2Addr(char *Address, struct in_addr *in_p)
   struct addrinfo hints;
   struct addrinfo *res=NULL, *result=NULL;
   char addr_cp[MAXSERVER];
-  char *addr;
+  char *addr = NULL;
 
   if (NULL == Address || NULL == in_p)
     return NULL;
@@ -126,20 +126,26 @@ struct in_addr *NetText2Addr(char *Address, struct in_addr *in_p)
 
   /* be sure it is not an in-brackets v6 address */
   if ((strchr(Address, '[') != NULL) ||
-      (strchr(Address, ']') != NULL))
+      (strchr(Address, ']') != NULL)) {
+    Display(LOG_LEVEL_3, ELWarning, "NetText2Addr", "IPv6 addr");
     goto error_v4;
+  }
 
   // be sure no more than on ':' is used to specify port number
   // (not IPv6 address without brakets!
   if( (addr = strchr(Address, ':')) != NULL )
   {
-    if( strchr(addr+1,':') != NULL )
+    if( strchr(addr+1,':') != NULL ) {
+      Display(LOG_LEVEL_3, ELWarning, "NetText2Addr", "IPv6 addr 2");
       goto error_v4;
+    }
   }
 
   /* Remove port number if any */
   addr = addr_cp;
   strtok(addr_cp, ":");
+
+  Display(LOG_LEVEL_3, ELWarning, "NetText2Addr", "Lookup: '%s'", addr);
 
   if( (getaddrinfo(addr, NULL, &hints, &res)) == 0 )
   {
@@ -153,6 +159,10 @@ struct in_addr *NetText2Addr(char *Address, struct in_addr *in_p)
       freeaddrinfo(res);
       return in_p;
     }
+    Display(LOG_LEVEL_3, ELWarning, "NetText2Addr", "getaddrinfo AF_INET failed");
+  } else {
+    Display(LOG_LEVEL_3, ELWarning, "NetText2Addr", "getaddrinfo failed %s",
+            strerror(errno));
   }
 
  error_v4:

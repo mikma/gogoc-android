@@ -32,47 +32,6 @@ This source code copyright (c) gogo6 Inc. 2002-2006.
 
 
 // --------------------------------------------------------------------------
-// TunInit: Open and initialize the TUN interface.
-//
-sint32_t TunInit(char *TunDevice)
-{
-  sint32_t tunfd;
-  struct ifreq ifr;
-  char iftun[128];
-  unsigned long ioctl_nochecksum = 1;
-
-  /* for linux, force the use of "tun" */
-#ifdef ANDROID
-  strcpy(iftun,"/dev/tun");
-#else
-  strcpy(iftun,"/dev/net/tun");
-#endif
-
-  tunfd = open(iftun,O_RDWR);
-  if (tunfd == -1) {
-    Display(LOG_LEVEL_1, ELError, "TunInit", GOGO_STR_ERR_OPEN_DEV, iftun);
-    Display(LOG_LEVEL_1, ELError, "TunInit", GOGO_STR_TRY_MODPROBE_TUN);
-    return (-1);
-  }
-
-  memset(&ifr, 0, sizeof(ifr));
-  ifr.ifr_flags = IFF_TUN;
-  strncpy(ifr.ifr_name, TunDevice, IFNAMSIZ);
-
-
-  if((ioctl(tunfd, TUNSETIFF, (void *) &ifr) == -1) ||
-     (ioctl(tunfd, TUNSETNOCSUM, (void *) ioctl_nochecksum) == -1)) {
-    Display(LOG_LEVEL_1, ELError, "TunInit", GOGO_STR_ERR_CONFIG_TUN_DEV_REASON, iftun,strerror(errno));
-    close(tunfd);
-
-    return(-1);
-  }
-
-  return tunfd;
-}
-
-
-// --------------------------------------------------------------------------
 // TunMainLoop: Initializes Keepalive engine and starts it. Then starts a
 //   loop to transfer data from/to the socket and tunnel.
 //   This process is repeated until tspCheckForStopOrWait indicates a stop.

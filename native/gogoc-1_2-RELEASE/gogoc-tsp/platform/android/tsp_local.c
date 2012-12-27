@@ -9,7 +9,7 @@ This source code copyright (c) gogo6 Inc. 2002-2007.
 -----------------------------------------------------------------------------
 */
 
-/* LINUX */
+/* Android */
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -55,7 +55,7 @@ error_t send_haccess_status_info( void ) { return GOGOCM_UIS__NOERROR; }
 // --------------------------------------------------------------------------
 /* Verify for ipv6 support */
 //
-gogoc_status tspTestIPv6Support()
+static gogoc_status tspTestIPv6Support()
 {
   struct stat buf;
   if(stat("/proc/net/if_inet6",&buf) == -1)
@@ -71,11 +71,10 @@ gogoc_status tspTestIPv6Support()
 
 
 // --------------------------------------------------------------------------
-// linux specific to setup an env variable
+// Unused on Android
 //
-void tspSetEnv(char *Variable, char *Value, int Flag)
+void tspSetEnv(char *Variable, char *Value, __unused int Flag)
 {
-  setenv( Variable, Value, Flag );
   Display( LOG_LEVEL_3, ELInfo, "tspSetEnv", "%s=%s", Variable, Value );
 }
 
@@ -86,6 +85,8 @@ void tspSetEnv(char *Variable, char *Value, int Flag)
 // Else, waits 'uiWaitMs' miliseconds and returns 0.
 //
 // Defined in tsp_client.h
+//
+// TODO Use pipe for stop events
 //
 int tspCheckForStopOrWait( const unsigned int uiWaitMs )
 {
@@ -101,10 +102,9 @@ int tspCheckForStopOrWait( const unsigned int uiWaitMs )
 
 
 // --------------------------------------------------------------------------
-// Called from tsp_setup.c -> tspSetupInterface
-//   Do extra platform-specific stuff before tunnel script is launched.
+// Unused on Android
 //
-int tspSetupInterfaceLocal( tConf* pConf, tTunnel* pTun )
+int tspSetupInterfaceLocal( __unused tConf* c, __unused tTunnel* t )
 {
   return 0;
 }
@@ -147,16 +147,6 @@ gogoc_status tspStartLocal(int socket, tConf *c, tTunnel *t, net_tools_t *nt)
   gogoc_status status = STATUS_SUCCESS_INIT;
   int ka_interval = 0;
   int tunfd = (-1);
-  int pid;
-
-
-  // Check if we got root privileges.
-  if(geteuid() != 0)
-  {
-    // Error: we don't have root privileges.
-    Display( LOG_LEVEL_1, ELError, "tspStartLocal", GOGO_STR_FATAL_NOT_ROOT_FOR_TUN );
-    return make_status(CTX_TUNINTERFACESETUP, ERR_INTERFACE_SETUP_FAILED);
-  }
 
   // Check Ipv6 support.
   Display( LOG_LEVEL_2, ELInfo, "tspStartLocal", GOGO_STR_CHECKING_LINUX_IPV6_SUPPORT );
@@ -167,21 +157,11 @@ gogoc_status tspStartLocal(int socket, tConf *c, tTunnel *t, net_tools_t *nt)
     return status;
   }
 
-#ifndef ANDROID
   // Check if we're already daemon. Calling multiple times the daemon() messes up pthreads.
-  if( !c->nodaemon && getppid() != 1 )
-  {
-    // Detach from controlling terminal and run in the background.
-    Display( LOG_LEVEL_3, ELInfo, "tspStartLocal", GOGO_STR_GOING_DAEMON );
-    if( daemon(1,0) == -1 )
-    {
-      // Error: Failed to detach.
-      Display( LOG_LEVEL_1, ELError, "tspStartLocal", GOGO_STR_CANT_FORK );
-      return make_status(CTX_TUNINTERFACESETUP, ERR_INTERFACE_SETUP_FAILED);
-    }
-  }
-#endif
-
+  // Display( LOG_LEVEL_3, ELInfo, "tspStartLocal", GOGO_STR_GOING_DAEMON );
+  // Error: Failed to detach.
+  // Display( LOG_LEVEL_1, ELError, "tspStartLocal", GOGO_STR_CANT_FORK );
+  // return make_status(CTX_TUNINTERFACESETUP, ERR_INTERFACE_SETUP_FAILED);
 
   // Check tunnel mode.
   if( strcasecmp(t->type, STR_CONFIG_TUNNELMODE_V4V6) == 0 )
@@ -193,7 +173,8 @@ gogoc_status tspStartLocal(int socket, tConf *c, tTunnel *t, net_tools_t *nt)
   else if( strcasecmp(t->type, STR_CONFIG_TUNNELMODE_V6UDPV4) == 0 )
   {
     // When using V6UDPV4 encapsulation, open the TUN device.
-    tunfd = TunInit(c->if_tunnel_v6udpv4);
+    /* TODO Establish Android VPN */
+    tunfd = TunInit(t->client_address_ipv6, t->client_dns_server_address_ipv6);
     if( tunfd == -1 )
     {
       // Error: Failed to open TUN device.
@@ -208,73 +189,9 @@ gogoc_status tspStartLocal(int socket, tConf *c, tTunnel *t, net_tools_t *nt)
     // descriptor. This is important because otherwise the tunnel will stay
     // open if we get killed.
     //
-    pid = fork();
 
-    if( pid < 0 )
-    {
-      // fork() error
-      status = make_status(CTX_TUNINTERFACESETUP, ERR_INTERFACE_SETUP_FAILED);
-      break;
-    }
-    else if (pid == 0)
-    {
-      // Child processing: run template script.
-      if( tunfd != -1 )
-      {
-        close(tunfd);
-      }
-
-      status = tspSetupInterface(c, t);
-      exit(status);
-    }
-    else
-    {
-      // Parent processing
-      int s = 0;
-
-
-      // Wait for child process to exit.
-      Display( LOG_LEVEL_3, ELInfo, "tspStartLocal", GOGO_STR_WAITING_FOR_SETUP_SCRIPT );
-      if( wait(&s) != pid )
-      {
-        // Error occured: we have no other child
-        Display( LOG_LEVEL_1, ELError, "tspStartLocal", GOGO_STR_ERR_WAITING_SCRIPT );
-        status = make_status(CTX_TUNINTERFACESETUP, ERR_INTERFACE_SETUP_FAILED);
-        break;
-      }
-
-      // Check if process waited upon has exited.
-      if( !WIFEXITED(s) )
-      {
-        // Error: child has not exited properly. Maybe killed ?
-        Display( LOG_LEVEL_1, ELError, "tspStartLocal", STR_GEN_SCRIPT_EXEC_FAILED );
-        status = make_status(CTX_TUNINTERFACESETUP, ERR_INTERFACE_SETUP_FAILED);
-        break;
-      }
-
-      // Check child exit code.
-      status = WEXITSTATUS(s);
-      if( status_number(status) != SUCCESS )
-      {
-        break;
-      }
-    }
-
-#ifdef ANDROID
-    // Check if we're already daemon. Calling multiple times the daemon() messes up pthreads.
-    if( !c->nodaemon && getppid() != 1 )
-    {
-      // Detach from controlling terminal and run in the background.
-      Display( LOG_LEVEL_3, ELInfo, "tspStartLocal", GOGO_STR_GOING_DAEMON );
-      if( daemon(1,0) == -1 )
-      {
-        // Error: Failed to detach.
-        Display( LOG_LEVEL_1, ELError, "tspStartLocal", GOGO_STR_CANT_FORK );
-        return make_status(CTX_TUNINTERFACESETUP, ERR_INTERFACE_SETUP_FAILED);
-      }
-    }
-    writepid();
-#endif
+    // Child processing: run template script.
+    //status = tspSetupInterface(c, t);
 
     // Retrieve keepalive inteval, if found in tunnel parameters.
     if( t->keepalive_interval != NULL )
