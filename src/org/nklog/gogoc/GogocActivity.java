@@ -119,7 +119,7 @@ public class GogocActivity extends Activity
 			String tag = line.substring(0, 1);
 			String content =  line.substring(1);
 			Log.d(TAG, "receive '" + line + "' from service");
-			if (tag.compareTo("E") == 0) {
+			if (tag.compareTo(GogocService.TAG_ERROR) == 0) {
 				displayLog(false);
 				checkbox.setChecked(false);
 				logtext.setText(R.string.contact);
@@ -131,19 +131,19 @@ public class GogocActivity extends Activity
 				} else if (content.compareTo("gogoc") == 0) {
 					text.setText(R.string.gogoc_error);
 				}
-			} else if (tag.compareTo("S") == 0) {
-				if (content.compareTo("online") == 0) {
+			} else if (tag.compareTo(GogocService.TAG_STATUS) == 0) {
+				if (content.compareTo(GogocService.STATUS_ONLINE) == 0) {
 					prepareLog();
 					displayAddress();
 					checkbox.setChecked(true);
 					status.setImageResource(R.drawable.online);
-				} else if (content.compareTo("offline") == 0) {
+				} else if (content.compareTo(GogocService.STATUS_OFFLINE) == 0) {
 					displayLog(false);
 					checkbox.setChecked(false);
 					text.setText(R.string.text);
 					logtext.setText(R.string.contact);
 					status.setImageResource(R.drawable.offline);
-				} else if (content.compareTo("running") == 0) {
+				} else if (content.compareTo(GogocService.STATUS_RUNNING) == 0) {
 					prepareLog();
 					checkbox.setChecked(true);
 					text.setText(R.string.running);

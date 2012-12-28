@@ -29,6 +29,9 @@ import android.content.pm.PackageManager.NameNotFoundException;
 
 public class GogocService extends VpnService
 {
+        public static final String TAG_STATUS = "S";
+        public static final String TAG_ERROR = "E";
+
         public final static String STATUS_OFFLINE = "offline";
         public final static String STATUS_ONLINE = "online";
         public final static String STATUS_RUNNING = "running";
@@ -45,7 +48,7 @@ public class GogocService extends VpnService
         // Called from thread
         synchronized private void setStatus(String newStatus) {
                 mStatus = newStatus;
-                sendToActivity("S", mStatus);
+                sendToActivity(TAG_STATUS, mStatus);
         }
 
         synchronized private String getStatus() {
@@ -127,7 +130,7 @@ public class GogocService extends VpnService
 			if (command.compareTo("quit") == 0) {
 				stopProcess();
 			} else if (command.compareTo("status") == 0) {
-                                sendToActivity("S", getStatus());
+                                sendToActivity(TAG_STATUS, getStatus());
 			}
 		}
 	}
@@ -157,7 +160,7 @@ public class GogocService extends VpnService
 			Log.e(TAG, "gogoc failed", e);
 		}
 		if (retcode != 0) {
-			sendToActivity("E", "gogoc");
+			sendToActivity(TAG_ERROR, "gogoc");
 			return false;
 		} else {
 			setStatus(STATUS_ONLINE);
