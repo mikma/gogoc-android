@@ -14,8 +14,6 @@
 
 #include <pthread.h>
 
-extern int indSigHUP; /* Declared in every unix platform tsp_local.c */
-
 #define PREFIX_LENGTH		128
 #define ROUTE_PREFIX		"::"
 #define ROUTE_PREFIX_LEN	0
@@ -140,7 +138,7 @@ void Java_org_nklog_gogoc_GogocService_startup(JNIEnv* env, jobject thiz,
 void Java_org_nklog_gogoc_GogocService_shutdown(JNIEnv* env, jclass clazz)
 {
     __android_log_print(ANDROID_LOG_INFO, TAG, "Wake buffer thread");
-    indSigHUP = 1;
+    TunStop();
     exitBuffer();
     pthread_join(thread, NULL);
     __android_log_print(ANDROID_LOG_INFO, TAG, "Joined buffer thread");
