@@ -29,6 +29,12 @@ import android.content.pm.PackageManager.NameNotFoundException;
 
 public class GogocService extends VpnService
 {
+        public final static String STATUS_OFFLINE = "offline";
+        public final static String STATUS_ONLINE = "online";
+        public final static String STATUS_RUNNING = "running";
+
+        private String mStatus = STATUS_OFFLINE;
+
 	private Receiver receiver = null;
 
 	private final String TAG = "GogocService";
@@ -36,11 +42,15 @@ public class GogocService extends VpnService
 
 	private SharedPreferences preference;
 
+        private void setStatus(String newStatus) {
+                mStatus = newStatus;
+                sendToActivity("S", mStatus);
+        }
+
         public class Builder extends VpnService.Builder {
                 public ParcelFileDescriptor establish () {
                         ParcelFileDescriptor parcel = super.establish();
-
-                        Log.d(TAG, "VpnService.Builder.establish");
+                        setStatus(STATUS_ONLINE);
 
                         return parcel;
                 }
@@ -87,7 +97,8 @@ public class GogocService extends VpnService
 
 	@Override
 	public void onRevoke() {
-                stopProcess();
+		Log.d(TAG, "onRevoked called");
+                setStatus(STATUS_OFFLINE);
                 super.onRevoke();
 	}
 
@@ -107,13 +118,7 @@ public class GogocService extends VpnService
 			if (command.compareTo("quit") == 0) {
 				stopProcess();
 			} else if (command.compareTo("status") == 0) {
-				try {
-                                        // TODO return status
-                                        // sendToActivity("S", "online");
-                                        // sendToActivity("S", "offline");
-				} catch (IllegalThreadStateException e) {
-					sendToActivity("S", "running");
-				}
+                                sendToActivity("S", mStatus);
 			}
 		}
 	}
@@ -125,7 +130,7 @@ public class GogocService extends VpnService
                 // TODO check if running
 
 		retcode = -1;
-		sendToActivity("S", "running");
+		setStatus(STATUS_RUNNING);
 		try {
 			Log.d(TAG, "start new process: " + getFileStreamPath("gogoc").getAbsolutePath());
                         startup(new Builder());
@@ -138,7 +143,7 @@ public class GogocService extends VpnService
 			sendToActivity("E", "gogoc");
 			return false;
 		} else {
-			sendToActivity("S", "online");
+			setStatus(STATUS_ONLINE);
 			try {
                                 // TODO set DNS
 			} catch (Exception e) {
