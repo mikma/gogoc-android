@@ -43,6 +43,7 @@ public class GogocActivity extends Activity
 	private final String TAG = "GogocActivity";
 	private final int LOG = 1;
 	private final int CLEAR = 2;
+        private static final int HANDLER_ASK = 3;
 
 	private Thread thread = null;
 	private boolean showassets;
@@ -149,6 +150,10 @@ public class GogocActivity extends Activity
 					text.setText(R.string.running);
 					status.setImageResource(R.drawable.running);
 				}
+                        } else if (tag.compareTo(GogocService.TAG_QUESTION) == 0) {
+                                Message msg = handler.obtainMessage(HANDLER_ASK, content);
+                                msg.sendToTarget();
+                                Log.d(TAG, "send handler_ask: " + content);
 			}
 		}
 	}
@@ -193,6 +198,15 @@ public class GogocActivity extends Activity
 		Intent intent = new Intent();
 		intent.setAction("org.nklog.gogoc.GogocService");
 		intent.putExtra("command", command);
+		sendBroadcast(intent);
+	}
+
+	private void sendAnswerToService(boolean answer) {
+		Log.d(TAG, "try to send answer " + answer + " to service");
+		Intent intent = new Intent();
+		intent.setAction("org.nklog.gogoc.GogocService");
+		intent.putExtra("command", "answer");
+		intent.putExtra("answer", answer);
 		sendBroadcast(intent);
 	}
 
@@ -280,7 +294,24 @@ public class GogocActivity extends Activity
 				logtext.setText((String)msg.obj);
 			} else if (msg.what == LOG) {
 				logtext.append((String)msg.obj + "\n");
-			}
+			} else if (msg.what == HANDLER_ASK) {
+                                String question = (String)msg.obj;
+                                Log.d(TAG, "handleMessage ask: " + question);
+                                AlertDialog.Builder builder = new AlertDialog.Builder(GogocActivity.this);
+                                builder.setMessage(question)
+                                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                                                        public void onClick(DialogInterface dialog, int id) {
+                                                                sendAnswerToService(true);
+                                                        }
+                                                })
+                                        .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                                                        public void onClick(DialogInterface dialog, int id) {
+                                                                sendAnswerToService(true);
+                                                        }
+                                                });
+
+                                builder.create().show();
+                        }
 		}
 	};
 

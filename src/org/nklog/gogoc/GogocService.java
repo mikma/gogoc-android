@@ -2,12 +2,18 @@
 
 package org.nklog.gogoc;
 
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.Service;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
@@ -23,6 +29,10 @@ import android.util.Log;
 import java.io.FileReader;
 import java.io.BufferedReader;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -31,6 +41,7 @@ public class GogocService extends VpnService
 {
         public static final String TAG_STATUS = "S";
         public static final String TAG_ERROR = "E";
+        public static final String TAG_QUESTION = "Q";
 
         public final static String STATUS_OFFLINE = "offline";
         public final static String STATUS_ONLINE = "online";
@@ -44,6 +55,10 @@ public class GogocService extends VpnService
 	private Thread thread = null;
 
 	private SharedPreferences preference;
+
+        private Lock lock = new ReentrantLock();
+        private Condition mAnswerReady = lock.newCondition();
+        private boolean mAnswer;
 
         // Called from thread
         synchronized private void setStatus(String newStatus) {
@@ -73,8 +88,7 @@ public class GogocService extends VpnService
 	{
 		receiver = new Receiver();
 
-		preference= PreferenceManager.getDefaultSharedPreferences(this);
-
+		preference = PreferenceManager.getDefaultSharedPreferences(this);
 		super.onCreate();
 	}
 
@@ -131,7 +145,17 @@ public class GogocService extends VpnService
 				stopProcess();
 			} else if (command.compareTo("status") == 0) {
                                 sendToActivity(TAG_STATUS, getStatus());
-			}
+			} if (command.compareTo("answer") == 0) {
+                                boolean answer = intent.getBooleanExtra("answer", false);
+                                lock.lock();
+                                try {
+                                        mAnswer = answer;
+                                        mAnswerReady.signal();
+                                } finally {
+                                        lock.unlock();
+                                }
+
+                        }
 		}
 	}
 
@@ -151,7 +175,20 @@ public class GogocService extends VpnService
                                 new OnQuestionListener(){
                                         public boolean ask(String question) {
                                                 Log.d(TAG, "on ask question");
-                                                return false;
+
+                                                sendToActivity(TAG_QUESTION,
+                                                               question);
+
+                                                boolean answer = false;
+                                                lock.lock();
+                                                try {
+                                                        mAnswerReady.await();
+                                                        answer = mAnswer;
+                                                } catch (InterruptedException e){
+                                                } finally {
+                                                        lock.unlock();
+                                                }
+                                                return answer;
                                         }
                                 });
                         // TODO
