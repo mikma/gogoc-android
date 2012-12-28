@@ -42,7 +42,7 @@ static
 int freadline(char *buf, int max_len, FILE *fp)
 {
   int pos;
-  char c;
+  int c;
 
   pos = 0;
   while ( ((c=(char)fgetc(fp)) != EOF)  &&  pos<max_len) {
