@@ -64,6 +64,8 @@ void ParseArguments(sint32_t argc, char *argv[], tConf *Conf)
   service_parse_cli(argc, argv);
 #endif
 
+  /* Reset getopt, allows calling ParseArguments multiple times. */
+  optind = 1;
   while( (ch = pal_getopt(argc, argv, "h?b?n?y?f:r:i:m:u:s:")) != -1 )
   {
     switch( ch )
