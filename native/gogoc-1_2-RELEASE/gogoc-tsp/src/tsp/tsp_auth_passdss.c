@@ -31,7 +31,6 @@ Copyright (c) 2001-2007 gogo6 Inc. All rights reserved.
 
 #define TSP_AUTH_PASSDSS_STRING "PASSDSS-3DES-1"
 #define TSP_AUTH_PASSDSS_BUFFERSIZE 4096
-#define TSPC_DSA_KEYFILE "gogockeys.pub"
 
 #if defined(WIN32) && !defined(WINCE)
 extern BOOL IsService;    // Declared in winpc/tsp_local.c
@@ -620,9 +619,8 @@ gogoc_status AuthPASSDSS_3DES_1(pal_socket_t socket, net_tools_t *nt, tConf *con
   buffer_get_bignum(Buf_Space, sig->s);
 
   /* Validate server DH public key  (RFC2631, 2.1.5) */
-
   {
-    if( !add_dsakey_to_keyfile(dsa, conf->server, TSPC_DSA_KEYFILE, conf->no_questions) )
+    if( !add_dsakey_to_keyfile(dsa, conf->server, conf->dsa_key_file, conf->no_questions) )
     {
       Display(LOG_LEVEL_1, ELError, TSP_AUTH_PASSDSS_STRING, GOGO_STR_KEY_VERIF_ERROR);
       status = make_status(CTX_TSPAUTHENTICATION, ERR_AUTHENTICATION_FAILURE);

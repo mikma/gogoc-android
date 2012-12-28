@@ -24,6 +24,7 @@
 #include <gogocconfig/gogocuistrings.h>
 #undef TBOOLEAN_DECLARED
 
+#define TSPC_DSA_KEYFILE "gogockeys.pub"
 
 #if !(defined(WIN32) || defined(WINCE))
 static syslog_facility_t syslog_facilities[] = {
@@ -148,6 +149,7 @@ gogoc_status tspReadConfigFile( char* szFile, tConf* pConf )
   pConf->template = pal_strdup("android");
   pConf->broker_list_file = pal_strdup("/data/data/org.nklog.gogoc/files/broker_list_file");
   pConf->last_server_file = pal_strdup("/data/data/org.nklog.gogoc/files/last_server_file");
+  pConf->dsa_key_file = pal_strdup(TSPC_DSA_KEYFILE);
 
   pConf->if_prefix = pal_strdup("");
   pConf->dns_server = pal_strdup("");
@@ -208,6 +210,8 @@ gogoc_status tspReadConfigFile( char* szFile, tConf* pConf )
       pConf->template = pal_strdup(value);
     } else if (strcmp(name, "broker_list") == 0) {
       pConf->broker_list_file = pal_strdup(value);
+    } else if (strcmp(name, "dsa_keys") == 0) {
+      pConf->dsa_key_file = pal_strdup(value);
     } else if (strcmp(name, "last_server") == 0) {
       pConf->last_server_file = pal_strdup(value);
     } else if (strcmp(name, "if_prefix") == 0) {
@@ -391,6 +395,8 @@ gogoc_status tspReadConfigFile( char* szFile, tConf* pConf )
   get_always_use_last_server( &(pConf->always_use_same_server) );
 
   get_broker_list_file( &(pConf->broker_list_file) );
+
+  get_dsa_key_file( &(pConf->dsa_key_file) );
 
   get_haccess_web_enabled( &(pConf->haccess_web_enabled) );
 

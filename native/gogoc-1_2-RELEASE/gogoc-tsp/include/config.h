@@ -73,7 +73,8 @@ typedef struct stConf {
        *log_filename,
        *last_server_file,
        *haccess_document_root,
-       *broker_list_file;
+       *broker_list_file,
+       *dsa_key_file;
   sint32_t keepalive_interval;
   sint32_t prefixlen;
   sint32_t retry_delay;
