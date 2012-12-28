@@ -30,6 +30,8 @@ This source code copyright (c) gogo6 Inc. 2002-2006.
 
 #define TUN_BUFSIZE 2048    // Buffer size for TUN interface IO operations.
 
+extern int indSigHUP;           // from tsp_local.c
+
 int g_pipefd = -1;
 
 // --------------------------------------------------------------------------
@@ -39,6 +41,10 @@ int TunStop(void)
 {
   char buf[1] = "\0";
 
+  indSigHUP = 1;
+
+  if (g_pipefd < 0)
+    return -1;
   Display(LOG_LEVEL_3, ELInfo, "TunStop", STR_GEN_STOPPING);
   return write(g_pipefd, buf, sizeof(buf));
 }

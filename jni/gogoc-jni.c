@@ -111,6 +111,7 @@ void tspGetOSInfo( const size_t len, char* buf )
   }
 }
 
+extern int indSigHUP;           // from tsp_local.c
 
 // --------------------------------------------------------------------------
 int main(int argc, char *argv[])
@@ -119,6 +120,8 @@ int main(int argc, char *argv[])
 #ifdef HACCESS
   haccess_status status = HACCESS_STATUS_OK;
 #endif
+
+  indSigHUP = 0;
 
 #ifdef HACCESS
   /* Initialize the HACCESS module. */
