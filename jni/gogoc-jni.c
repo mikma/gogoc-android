@@ -1,16 +1,14 @@
 #include <assert.h>
 #include <jni.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define TAG "Gogoc"
 
 // for __android_log_print(ANDROID_LOG_INFO, TAG, "formatted message");
 #include <android/log.h>
-
-// for native asset manager
-#include <sys/types.h>
-#include <android/asset_manager.h>
-#include <android/asset_manager_jni.h>
 
 #define PREFIX_LENGTH		128
 #define ROUTE_PREFIX		"::"
@@ -48,14 +46,30 @@ void Java_org_nklog_gogoc_GogocService_startup(JNIEnv* env, jobject thiz,
       return;
     }
 
-    char *args[] = {
-      "gogoc",
-      "-m", "v6udpv4"           /* Only v6udpv4 supported by this app. */
-    };
+    jboolean is_copy = 0;
+    const char *config_file_str = NULL;
+
+    int argc = 0;
+    const char *args[16];
+
+    args[argc++] = "gogoc";
+
+    if (config_file &&
+        (config_file_str = (*g_env)->GetStringUTFChars(g_env, config_file, &is_copy)) &&
+        is_regular(config_file_str)) {
+      args[argc++] = "-f";
+      args[argc++] = config_file_str;
+    } else {
+      args[argc++] = "-m";
+      args[argc++] = "v6udpv4";           /* Only v6udpv4 supported by this app. */
+    }
     __android_log_print(ANDROID_LOG_INFO, TAG, "Begin main: '%s' '%s' '%s'",
                         args[0], args[1], args[2]);
 
-    main(sizeof(args)/sizeof(args[0]), args);
+    main(argc, args);
+
+    if (is_copy)
+      (*g_env)->ReleaseStringUTFChars(g_env, config_file, config_file_str);
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "End init");
 }

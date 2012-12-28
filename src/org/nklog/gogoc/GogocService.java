@@ -138,7 +138,9 @@ public class GogocService extends VpnService
 		setStatus(STATUS_RUNNING);
 		try {
 			Log.d(TAG, "start new process: " + getFileStreamPath("gogoc").getAbsolutePath());
-                        startup(new Builder());
+
+                        startup(new Builder(),
+                                getFileStreamPath("gogoc.conf").getAbsolutePath());
                         // TODO
 			// retcode = process.waitFor();
 		} catch (Exception e) {
@@ -193,6 +195,7 @@ public class GogocService extends VpnService
                 System.loadLibrary("gogocjni");
         }
 
-        native private void startup(VpnService.Builder builder);
+        native private void startup(VpnService.Builder builder,
+                String configFile);
         native private void shutdown();
 }
