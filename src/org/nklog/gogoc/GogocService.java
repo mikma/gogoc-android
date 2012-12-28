@@ -42,9 +42,14 @@ public class GogocService extends VpnService
 
 	private SharedPreferences preference;
 
-        private void setStatus(String newStatus) {
+        // Called from thread
+        synchronized private void setStatus(String newStatus) {
                 mStatus = newStatus;
                 sendToActivity("S", mStatus);
+        }
+
+        synchronized private String getStatus() {
+                return mStatus;
         }
 
         public class Builder extends VpnService.Builder {
@@ -118,7 +123,7 @@ public class GogocService extends VpnService
 			if (command.compareTo("quit") == 0) {
 				stopProcess();
 			} else if (command.compareTo("status") == 0) {
-                                sendToActivity("S", mStatus);
+                                sendToActivity("S", getStatus());
 			}
 		}
 	}
