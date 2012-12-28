@@ -471,6 +471,9 @@ gogoc_status tspInitialize(sint32_t argc, char *argv[], tConf *pConf)
   if(CmdLine.client_v4)
     pConf->client_v4 = CmdLine.client_v4;
 
+  if(CmdLine.tunnel_mode)
+    pConf->tunnel_mode = CmdLine.tunnel_mode;
+
   pConf->boot_mode = CmdLine.boot_mode;
   pConf->nodaemon = CmdLine.nodaemon;
   pConf->no_questions = CmdLine.no_questions;

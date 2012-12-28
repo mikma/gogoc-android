@@ -36,6 +36,7 @@ void PrintUsage( char *message )
   printf("usage: gogoc [options] [-f config_file] [-r seconds]\n"
           "  where options are :\n"
           "    -i    gif interface to use for tunnel_v6v4\n"
+          "    -m    tunnel mode (v6v4|v6udpv4|v4v6|v6anyv4)\n"
           "    -u    interface to use for tunnel_v6udpv4\n"
           "    -s    interface to query to get IPv4 source address\n"
           "    -f    Read this config file instead of %s \n"
@@ -63,7 +64,7 @@ void ParseArguments(sint32_t argc, char *argv[], tConf *Conf)
   service_parse_cli(argc, argv);
 #endif
 
-  while( (ch = pal_getopt(argc, argv, "h?b?n?y?f:r:i:u:s:")) != -1 )
+  while( (ch = pal_getopt(argc, argv, "h?b?n?y?f:r:i:m:u:s:")) != -1 )
   {
     switch( ch )
     {
@@ -81,6 +82,17 @@ void ParseArguments(sint32_t argc, char *argv[], tConf *Conf)
         break;
       case 'i':
         Conf->if_tunnel_v6v4 = optarg;
+        break;
+      case 'm':
+        if (strcmp(optarg, "v6v4") == 0) {
+          Conf->tunnel_mode = V6V4;
+        } else if (strcmp(optarg, "v6udpv4") == 0) {
+          Conf->tunnel_mode = V6UDPV4;
+        } else if (strcmp(optarg, "v4v6") == 0) {
+          Conf->tunnel_mode = V4V6;
+        } else if (strcmp(optarg, "v6anyv4") == 0) {
+          Conf->tunnel_mode = V6ANYV4;
+        }
         break;
       case 'u':
         Conf->if_tunnel_v6udpv4 = optarg;
