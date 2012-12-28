@@ -125,10 +125,14 @@ void Java_org_nklog_gogoc_GogocService_startup(JNIEnv* env, jobject thiz,
     __android_log_print(ANDROID_LOG_INFO, TAG, "End create thread");
     assert(res == 0);
 
-    char *args[] = {NULL};
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Begin main");
+    char *args[] = {
+      "gogoc",
+      "-m", "v6udpv4"           /* Only v6udpv4 supported by this app. */
+    };
+    __android_log_print(ANDROID_LOG_INFO, TAG, "Begin main: '%s' '%s' '%s'",
+                        args[0], args[1], args[2]);
 
-    main(0, args);
+    main(sizeof(args)/sizeof(args[0]), args);
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "End init");
 }
