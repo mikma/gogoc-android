@@ -114,6 +114,7 @@ gogoc_status TunMainLoop(sint32_t tunfd, pal_socket_t Socket,
       break;
     }
 
+#if 0
     if( keepalive == TRUE )
     {
 
@@ -144,6 +145,7 @@ gogoc_status TunMainLoop(sint32_t tunfd, pal_socket_t Socket,
       timeout.tv_usec = 500000;    // 500 milliseconds.
     }
     else
+#endif
     {
       // Reinit select timeout variable; select modifies it.
       timeout.tv_sec = 7 * 24 * 60 * 60 ; // one week
