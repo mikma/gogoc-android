@@ -19,7 +19,7 @@
 
 #define GOGO_STR_ENV_PRINT_VALUE                           "%-30.30s   %s"
 #define GOGO_STR_NOT_DEF_AS_CLIENT_ERROR                   "%i is not defined as a client error. Might be a TSP error?"
-#define GOGO_STR_UNKNOWN_HOST_ADD_KEY                      "%s is an unknown host, do you want to add its key?"
+#define GOGO_STR_UNKNOWN_HOST_ADD_KEY                      "%s is an unknown host, do you want to add its key?\nFingerprint:\n%s"
 #define GOGO_STR_WARN_SERVER_KEY_AUTO_ADDED                "Server key has been automatically added."
 #define GOGO_STR_WARN_STORED_LOCAL_KEY_NO_MATCH            "Local key stored in %s for host %s doesn't match host key. *NOT CONNECTING*"
 #define GOGO_STR_API_EQUALS                                "API = %s, "

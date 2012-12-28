@@ -28,6 +28,7 @@ Copyright (c) 2001-2007 gogo6 Inc. All rights reserved.
 #include "cli.h"        // ask()
 #include "tsp_redirect.h"
 #include "tsp_client.h"
+#include "md5.h"
 
 #define TSP_AUTH_PASSDSS_STRING "PASSDSS-3DES-1"
 #define TSP_AUTH_PASSDSS_BUFFERSIZE 4096
@@ -212,6 +213,22 @@ is_dsakey_in_keyfile_cleanup:
   return ret;
 }
 
+/*
+  0 error
+  1 ok
+*/
+static int buffer_set_pubkey(Buffer *buf, const DSA *dsa)
+{
+  buffer_init(buf);
+  if (buf->buf == NULL)
+    return 0;
+  buffer_put_cstring(buf, "ssh-dss");
+  buffer_put_bignum(buf, dsa->p);
+  buffer_put_bignum(buf, dsa->q);
+  buffer_put_bignum(buf, dsa->g);
+  buffer_put_bignum(buf, dsa->pub_key);
+  return 1;
+}
 
 /** Add a DSA key to the tspc key file
  *
@@ -249,7 +266,18 @@ add_dsakey_to_keyfile(DSA *dsa, char *host, char *filename, tBoolean autoaccept)
     if (!autoaccept)
     {
 #endif
-      if (!ask(GOGO_STR_UNKNOWN_HOST_ADD_KEY, host))
+      const char *fingerprint = NULL;
+
+      if ( !buffer_set_pubkey(&buf, dsa) )
+        break;
+
+      fingerprint = md5(buffer_ptr(&buf), buffer_len(&buf));
+      if ( fingerprint == NULL )
+        break;
+
+      buffer_free(&buf);
+
+      if (!ask(GOGO_STR_UNKNOWN_HOST_ADD_KEY, host, fingerprint))
       {
         Display(LOG_LEVEL_3, ELWarning, TSP_AUTH_PASSDSS_STRING, GOGO_STR_SERVER_KEY_REJECTED_USER);
         break;
@@ -260,14 +288,8 @@ add_dsakey_to_keyfile(DSA *dsa, char *host, char *filename, tBoolean autoaccept)
 
     Display(LOG_LEVEL_2, ELInfo, TSP_AUTH_PASSDSS_STRING, GOGO_STR_SERVER_KEY_ACCEPTED_ADDED);
 
-    buffer_init(&buf);
-    if (buf.buf == NULL)
+    if ( !buffer_set_pubkey(&buf, dsa) )
       break;
-    buffer_put_cstring(&buf, "ssh-dss");
-    buffer_put_bignum(&buf, dsa->p);
-    buffer_put_bignum(&buf, dsa->q);
-    buffer_put_bignum(&buf, dsa->g);
-    buffer_put_bignum(&buf, dsa->pub_key);
 
     if ( (str = pal_malloc(2 * buffer_len(&buf))) == NULL)
       break;
