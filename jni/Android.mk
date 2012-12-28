@@ -1,3 +1,5 @@
+HAVE_OPENSSL := true
+
 ifneq ($(TARGET_SIMULATOR),true)
 
 LOCAL_PATH := $(call my-dir)
@@ -25,13 +27,12 @@ LOCAL_LDFLAGS += -llog
 
 LOCAL_MODULE := libgogocjni
 
-LOCAL_STATIC_LIBRARIES += libgogoc
-# libglib-2.0_static
+LOCAL_STATIC_LIBRARIES += libgogoc libcrypto_static
 
 include $(BUILD_SHARED_LIBRARY)
-
-#$(call import-module, glib)
 
 include $(LOCAL_PATH)/../native/Android.mk
 
 endif
+
+$(call import-module, openssl)

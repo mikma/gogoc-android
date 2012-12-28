@@ -57,8 +57,7 @@ LOCAL_CFLAGS = \
 LOCAL_CFLAGS += -Wall -Wextra
 
 ifeq ($(HAVE_OPENSSL),true)
-LOCAL_C_INCLUDES += external/openssl/include
-LOCAL_SHARED_LIBRARIES += libcrypto
+LOCAL_STATIC_LIBRARIES += libcrypto_static
 LOCAL_SRC_FILES += \
 		gogoc-tsp/src/lib/bufaux.c \
 		gogoc-tsp/src/tsp/tsp_auth_passdss.c
@@ -72,3 +71,5 @@ LOCAL_SYSTEM_SHARED_LIBRARIES := libc
 # LOCAL_FORCE_STATIC_EXECUTABLE := true
 LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT_BIN)
 include $(BUILD_STATIC_LIBRARY)
+
+$(call import-module, openssl)
