@@ -5,6 +5,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <pal_types.h>
+
 #define TAG "Gogoc"
 
 // for __android_log_print(ANDROID_LOG_INFO, TAG, "formatted message");
@@ -21,6 +23,7 @@
 
 JNIEnv *g_env;
 jobject g_builder;
+jobject g_question_listener;
 
 // (called automatically on load)
 __attribute__((constructor)) static void onDlOpen(void)
@@ -42,7 +45,8 @@ static int is_regular(const char *path)
 
 void Java_org_nklog_gogoc_GogocService_startup(JNIEnv* env, jobject thiz,
                                                jobject builder,
-                                               jobject config_file)
+                                               jobject config_file,
+                                               jobject question_listener)
 {
     int res;
     int i;
@@ -56,6 +60,16 @@ void Java_org_nklog_gogoc_GogocService_startup(JNIEnv* env, jobject thiz,
       if (class) {
         (*g_env)->ThrowNew(g_env, class, "unable to get global ref");
       }
+      return;
+    }
+
+    g_question_listener = (*g_env)->NewGlobalRef(env, question_listener);
+    if (!g_question_listener) {
+      jclass class = (*g_env)->FindClass(g_env, JAVA_LANG_RUNTIME_EXCEPTION);
+      if (class) {
+        (*g_env)->ThrowNew(g_env, class, "unable to get global ref");
+      }
+      /* TODO release g_builder */
       return;
     }
 
@@ -91,6 +105,55 @@ void Java_org_nklog_gogoc_GogocService_shutdown(JNIEnv* env, jclass clazz)
 {
     __android_log_print(ANDROID_LOG_INFO, TAG, "Wake gogo thread");
     TunStop();
+}
+
+#define ANSWER_NO 0
+#define ANSWER_YES 1
+
+sint32_t tspAskV(const char *question)
+{
+  sint32_t res = ANSWER_NO;
+  jclass clazz = 0;
+  jmethodID ask;
+  jobject question_obj = NULL;
+
+  __android_log_print(ANDROID_LOG_INFO, TAG, "tspAskV '%s'", question);
+
+  if (!g_env || !g_question_listener)
+    return ANSWER_NO;
+
+  clazz = (*g_env)->GetObjectClass(g_env, g_question_listener);
+  if (!clazz) {
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "No builder class");
+    goto error;
+  }
+
+  ask = (*g_env)->GetMethodID(g_env, clazz, "ask",
+                                      "(Ljava/lang/String;)Z");
+  if (!ask) {
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "failed builder methods: %p", ask);
+    goto error;
+  }
+
+  question_obj = (*g_env)->NewStringUTF(g_env, question);
+  
+  if (!question_obj) {
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "failed builder parameter objects: %p", question);
+    goto error;
+  }
+
+  /* TODO check exceptions */
+  res = (*g_env)->CallBooleanMethod(g_env, g_question_listener,
+                                    ask, question_obj);
+
+ error:
+  if (clazz)
+    (*g_env)->DeleteLocalRef(g_env, clazz);
+
+  if (question_obj)
+    (*g_env)->DeleteLocalRef(g_env, question_obj);
+
+  return res;
 }
 
 #if 1

@@ -17,4 +17,6 @@ This source code copyright (c) gogo6 Inc. 2002-2007.
 
 #define SCRIPT_TMP_FILE                   "/tmp/gogoc-tmp.log"
 
+extern sint32_t tspAskV(const char *question);
+
 #endif

@@ -124,6 +124,34 @@ void ParseArguments(sint32_t argc, char *argv[], tConf *Conf)
 // This function is a travesty in a daemon or service
 //
 #if !defined(WINCE)
+
+#ifdef ANDROID
+sint32_t ask(char *question, ...)
+{
+  va_list ap;
+  char *buf;
+  size_t len;
+  sint32_t res;
+
+  if ( (buf = malloc(sizeof(char) * 1024)) == NULL ) {
+    Display(LOG_LEVEL_1, ELError, "ask", STR_GEN_MALLOC_ERROR);
+    return 0;
+  }
+
+  va_start(ap, question);
+  len = pal_vsnprintf(buf, 1024, question, ap);
+  va_end(ap);
+
+  if (len < 1024) {
+    res = tspAskV(buf);
+  } else {
+    Display(LOG_LEVEL_1, ELError, "ask", STR_GEN_MALLOC_ERROR);
+    res = 0;
+  }
+
+  return res;
+}
+#else
 sint32_t ask(char *question, ...)
 {
   va_list ap;
@@ -169,4 +197,5 @@ ask_again:
 
   return ret;
 }
+#endif
 #endif

@@ -61,6 +61,10 @@ public class GogocService extends VpnService
                 }
         }
 
+        public interface OnQuestionListener {
+                public boolean ask(String question);
+        }
+
 	@Override
 	public void onCreate()
 	{
@@ -140,7 +144,13 @@ public class GogocService extends VpnService
 			Log.d(TAG, "start new process: " + getFileStreamPath("gogoc").getAbsolutePath());
 
                         startup(new Builder(),
-                                getFileStreamPath("gogoc.conf").getAbsolutePath());
+                                getFileStreamPath("gogoc.conf").getAbsolutePath(),
+                                new OnQuestionListener(){
+                                        public boolean ask(String question) {
+                                                Log.d(TAG, "on ask question");
+                                                return false;
+                                        }
+                                });
                         // TODO
 			// retcode = process.waitFor();
 		} catch (Exception e) {
@@ -196,6 +206,7 @@ public class GogocService extends VpnService
         }
 
         native private void startup(VpnService.Builder builder,
-                String configFile);
+                                    String configFile,
+                                    OnQuestionListener listener);
         native private void shutdown();
 }
