@@ -12,8 +12,6 @@
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 
-#include <pthread.h>
-
 #define PREFIX_LENGTH		128
 #define ROUTE_PREFIX		"::"
 #define ROUTE_PREFIX_LEN	0
@@ -23,75 +21,14 @@
 #define FOO __android_log_print(ANDROID_LOG_INFO, TAG, "line %d", __LINE__)
 
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-pthread_t thread;
-pthread_attr_t thread_attr;
-
 JNIEnv *g_env;
 jobject g_builder;
-
-typedef struct event {
-    enum {EVENT_NONE, EVENT_EXIT, EVENT_BUFFER} code;
-    int buffer_no;
-} event_t;
-
-event_t event;
 
 // (called automatically on load)
 __attribute__((constructor)) static void onDlOpen(void)
 {
 }
 
-
-static void requestBuffer(int num)
-{
-    pthread_mutex_lock(&mutex);
-    event.buffer_no += num;
-    if (event.code == EVENT_NONE) {
-	event.code = EVENT_BUFFER;
-    }
-    /* __android_log_print(ANDROID_LOG_INFO, TAG, "request buffer %d + %d", */
-    /* 			event.code, event.buffer_no); */
-    pthread_cond_signal(&cond);
-    pthread_mutex_unlock(&mutex);
-}
-
-static void exitBuffer()
-{
-    pthread_mutex_lock(&mutex);
-    event.code = EVENT_EXIT;
-    pthread_cond_signal(&cond);
-    pthread_mutex_unlock(&mutex);
-}
-
-static void *thread_start(void *arg)
-{
-    int code;
-
-    __android_log_print(ANDROID_LOG_INFO, TAG, "thread_start");
-
-    while (1) {
-	pthread_mutex_lock(&mutex);
-	while (event.code == EVENT_NONE) {
-	    pthread_cond_wait(&cond, &mutex);
-	}
-
-	int code = event.code;
-
-	switch (code) {
-	case EVENT_EXIT:
-	    __android_log_print(ANDROID_LOG_INFO, TAG, "thread event exit");
-	    pthread_mutex_unlock(&mutex);
-	    return;
-	default:
-	    // EVENT_NONE
-	    break;
-	}
-
-	pthread_mutex_unlock(&mutex);
-    }
-}
 
 void Java_org_nklog_gogoc_GogocService_startup(JNIEnv* env, jobject thiz,
                                                jobject builder)
@@ -111,18 +48,6 @@ void Java_org_nklog_gogoc_GogocService_startup(JNIEnv* env, jobject thiz,
       return;
     }
 
-    event.code = EVENT_NONE;
-    event.buffer_no = 0;
-
-    res = pthread_attr_init(&thread_attr);
-    assert(res == 0);
-
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Begin create thread");
-    res = pthread_create(&thread, &thread_attr,
-			 &thread_start, NULL);
-    __android_log_print(ANDROID_LOG_INFO, TAG, "End create thread");
-    assert(res == 0);
-
     char *args[] = {
       "gogoc",
       "-m", "v6udpv4"           /* Only v6udpv4 supported by this app. */
@@ -137,12 +62,8 @@ void Java_org_nklog_gogoc_GogocService_startup(JNIEnv* env, jobject thiz,
 
 void Java_org_nklog_gogoc_GogocService_shutdown(JNIEnv* env, jclass clazz)
 {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Wake buffer thread");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "Wake gogo thread");
     TunStop();
-    exitBuffer();
-    pthread_join(thread, NULL);
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Joined buffer thread");
-    thread = 0;
 }
 
 #if 1
@@ -279,18 +200,13 @@ sint32_t TunInit(const char *client_address_ipv6,
     goto error;
   }
 
-  FOO;
   /* TODO check exceptions */
   (*g_env)->CallObjectMethod(g_env, g_builder, add_address, address, PREFIX_LENGTH);
-  FOO;
   /* Broken access to google DNS on gogo6 */
   /* (*g_env)->CallObjectMethod(g_env, g_builder, add_dns_server, dns_server); */
-  FOO;
   (*g_env)->CallObjectMethod(g_env, g_builder, add_route, route, ROUTE_PREFIX_LEN);
-  FOO;
 
   parcelfd = (*g_env)->CallObjectMethod(g_env, g_builder, establish);
-  FOO;
 
   if (!parcelfd) {
     __android_log_print(ANDROID_LOG_ERROR, TAG, "failed establish");
@@ -298,25 +214,21 @@ sint32_t TunInit(const char *client_address_ipv6,
   }
 
   parcel_fd_clazz = (*g_env)->GetObjectClass(g_env, parcelfd);
-  FOO;
   if (!parcel_fd_clazz) {
     __android_log_print(ANDROID_LOG_ERROR, TAG, "failed parcel class");
     goto error;
   }
 
   detach_fd = (*g_env)->GetMethodID(g_env, parcel_fd_clazz, "detachFd", "()I");
-  FOO;
   if (!detach_fd) {
     __android_log_print(ANDROID_LOG_ERROR, TAG, "failed detach");
     goto error;
   }
 
   tunfd = (*g_env)->CallIntMethod(g_env, parcelfd, detach_fd);
-  FOO;
   if (tunfd < 0) {
     __android_log_print(ANDROID_LOG_ERROR, TAG, "failed tunfd");
   }
-  FOO;
   return tunfd;
 
  error:
