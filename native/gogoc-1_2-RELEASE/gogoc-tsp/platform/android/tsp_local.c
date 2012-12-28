@@ -86,8 +86,6 @@ void tspSetEnv(char *Variable, char *Value, __unused int Flag)
 //
 // Defined in tsp_client.h
 //
-// TODO Use pipe for stop events
-//
 int tspCheckForStopOrWait( const unsigned int uiWaitMs )
 {
   // Sleep for the amount of time specified, if signal has not been sent.

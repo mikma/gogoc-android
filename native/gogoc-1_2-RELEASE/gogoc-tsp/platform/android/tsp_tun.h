@@ -20,4 +20,6 @@ gogoc_status         TunMainLoop           (sint32_t tunfd, pal_socket_t Socket,
                                            tBoolean keepalive, sint32_t keepalive_interval,
 		                                       char *local_address_ipv6, char *keepalive_address);
 
+extern int TunStop(void);
+
 #endif /* TUN_H */

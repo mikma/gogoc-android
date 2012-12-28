@@ -346,6 +346,7 @@
 #define STR_GEN_DISCONNECTED_RETRY_NOW                "Disconnected. Retrying."
 #define STR_GEN_DISCONNECTED_RETRY_SEC                "Disconnected. Retrying in %d seconds."
 #define STR_GEN_LAST_STATUS_CONTEXT                   "Last status context is: %s."
+#define STR_GEN_STOPPING                              "Stopping."
 #define STR_GEN_FINISHED                              "Finished."
 
 // TSP strings.
