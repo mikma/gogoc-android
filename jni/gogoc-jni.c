@@ -25,11 +25,24 @@ jobject g_builder;
 // (called automatically on load)
 __attribute__((constructor)) static void onDlOpen(void)
 {
+  __android_log_print(ANDROID_LOG_INFO, TAG, "onDlOpen");
 }
 
+static int is_regular(const char *path)
+{
+  struct stat buf;
+
+  memset(&buf, 0, sizeof(buf));
+
+  if (stat(path, &buf) < 0)
+    return 0;
+  else
+    return S_ISREG(buf.st_mode);
+}
 
 void Java_org_nklog_gogoc_GogocService_startup(JNIEnv* env, jobject thiz,
-                                               jobject builder)
+                                               jobject builder,
+                                               jobject config_file)
 {
     int res;
     int i;
@@ -148,7 +161,9 @@ int main(int argc, char *argv[])
 #endif
 
   /* entry point */
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Main begin");
   rc = tspMain(argc, argv);
+  __android_log_print(ANDROID_LOG_INFO, TAG, "Main end");
 
 #ifdef HACCESS
   /* The HACCESS module destructs (deinitialization). */
