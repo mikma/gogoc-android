@@ -1,4 +1,4 @@
-HAVE_OPENSSL := true
+#HAVE_OPENSSL := true
 
 ifneq ($(TARGET_SIMULATOR),true)
 
@@ -19,20 +19,16 @@ LOCAL_C_INCLUDES += \
 	$(GOGOC_DIR)/gogoc-tsp/platform/android \
 	$(GOGOC_DIR)/gogoc-tsp/include
 
-#LOCAL_SHARED_LIBRARIES := libcutils libcrypto
-
 LOCAL_CFLAGS :=
 
 LOCAL_LDFLAGS += -llog
 
 LOCAL_MODULE := libgogocjni
 
-LOCAL_STATIC_LIBRARIES += libgogoc libcrypto_static
+LOCAL_STATIC_LIBRARIES += libgogoc
 
 include $(BUILD_SHARED_LIBRARY)
 
 include $(LOCAL_PATH)/../native/Android.mk
 
 endif
-
-$(call import-module, openssl)

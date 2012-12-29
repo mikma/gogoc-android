@@ -72,4 +72,6 @@ LOCAL_SYSTEM_SHARED_LIBRARIES := libc
 LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT_BIN)
 include $(BUILD_STATIC_LIBRARY)
 
+ifeq ($(HAVE_OPENSSL),true)
 $(call import-module, openssl)
+endif
