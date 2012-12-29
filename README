@@ -8,9 +8,9 @@
    2). online.png, offline.png, running.png
        http://developer.android.com/resources/tutorials/views/hello-formstuff.html
 
-3. About tun.ko
-   TUN/TAP is essential to support Gogoc.
-   Most of Android are behind NAT, then sit is not supported.
+3. About VPN client API
+   This version requires VPN client API available in Android 4.0+.
+   It doesn't require a rooted device.
 
 4. About authentication
    This version doesn't support openssl based authentication.
@@ -18,6 +18,7 @@
 
 5. About the change and UI
    (c) by Liu DongMiao <liudongmiao # gmail.com>
+   Copyright (c) 2012, Mikael Magnusson <mikma@users.sourceforge.net>
 
 6. Howto Compile
    1). run `ndk-build' to compile `gogoc'
